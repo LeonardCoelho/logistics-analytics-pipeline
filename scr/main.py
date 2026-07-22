@@ -1,10 +1,12 @@
 import pandas as pd
 import numpy as np
 from datetime import datetime
+from extract.extract import load_carteira, load_previsao
+from utils.config import CARTEIRA_PATH, PREVISAO_PATH, OUTPUT_DIR
 
 # Ler bases
-carteira = pd.read_excel("data/carteira_age.xlsx", engine="openpyxl", header=2)
-previsao = pd.read_excel("data/previsao_recuperacao_bo.xlsx", engine="openpyxl")
+carteira = load_carteira(CARTEIRA_PATH)
+previsao = load_previsao(PREVISAO_PATH)
 
 # Padronizar nomes
 carteira["2º No.Item"] = carteira["2º No.Item"].astype("Int64").astype(str).str.strip()
