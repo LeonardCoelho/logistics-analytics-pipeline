@@ -6,23 +6,19 @@ def allocate_forecast_by_demand(
 ) -> list[float]:
     if sku_total_cxs > 0:
         return [client_total_cxs/sku_total_cxs * valor for valor in forecast_values]
-    """
-    Aloca a previsão diária de um SKU/CD para um cliente específico.
+    elif qtd_clientes_sku > 0:
+        return [valor/qtd_clientes_sku for valor in forecast_values]
+    return len(forecast_values) * [0.0]
 
-    Regra de negócio:
-    - Se houver demanda total registrada para o SKU/CD (sku_total_cxs > 0),
-      aloca proporcionalmente ao peso do cliente (client_total_cxs / sku_total_cxs).
-    - Caso não haja demanda registrada, mas existam clientes contando esse SKU,
-      divide a previsão igualmente entre eles (qtd_clientes_sku).
-    - Caso nenhuma das duas condições se aplique, retorna zeros.
+if __name__ == "__main__":
+    # Caso 1: rateio proporcional
+    print(allocate_forecast_by_demand([10, 20, 30], client_total_cxs=5, sku_total_cxs=20, qtd_clientes_sku=2))
+    # esperado: [2.5, 5.0, 7.5]
 
-    Args:
-        forecast_values: previsão diária do SKU/CD (mesma ordem de `day_cols`).
-        client_total_cxs: total de caixas (Total CXs) desse cliente para o SKU.
-        sku_total_cxs: total de caixas do SKU/CD somando todos os clientes.
-        qtd_clientes_sku: quantidade de combinações loja+cliente que demandam o SKU/CD.
+    # Caso 2: fallback defensivo (divisão igualitária)
+    print(allocate_forecast_by_demand([10, 20, 30], client_total_cxs=5, sku_total_cxs=0, qtd_clientes_sku=2))
+    # esperado: [5.0, 10.0, 15.0]
 
-    Returns:
-        Lista de valores alocados, no mesmo tamanho e ordem de `forecast_values`.
-    """
-    # TODO: implementar a lógica (equivalente ao allocate_by_demand original)
+    # Caso 3: sem demanda nenhuma
+    print(allocate_forecast_by_demand([10, 20, 30], client_total_cxs=0, sku_total_cxs=0, qtd_clientes_sku=0))
+    # esperado: [0.0, 0.0, 0.0]
