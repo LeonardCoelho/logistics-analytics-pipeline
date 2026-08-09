@@ -205,18 +205,6 @@ hoje = datetime.now()
 dia_hoje = hoje.day
 dias = [d for d in day_cols if int(d) >= dia_hoje]
 
-def calcular_recuperacao_sku(row):
-    acumulado = 0
-    for dia in dias:
-        valor = row.get(f"forecast_{dia}", 0)
-        if pd.isna(valor):
-            valor = 0
-        acumulado += valor
-        if acumulado >= row["Total CXs"]:
-            diferenca = int(dia) - dia_hoje
-            return f"D+{diferenca}", acumulado, int(dia)
-    return "Sem previsão até fim do mês", acumulado, np.nan
-
 recuperacao_sku = demanda.apply(calcular_recuperacao_sku, axis=1, result_type='expand')
 demanda["sku_recuperacao_dia"] = recuperacao_sku[2]
 skus["Previsão Recuperação"] = recuperacao_sku[0]
