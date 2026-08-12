@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 from extract.extract import load_carteira, load_previsao
+from transform.allocation import allocate_forecast_by_demand
 from utils.config import CARTEIRA_PATH, PREVISAO_PATH, OUTPUT_DIR
 
 # Ler bases
@@ -89,20 +90,8 @@ if "Previsao Total SKU" not in demanda.columns:
 # total de CXs por SKU+CD para alocação proporcional
 demanda["sku_total_cxs"] = demanda.groupby(["2º No.Item", "CD"])["Total CXs"].transform("sum")
 
-def allocate_by_demand(row):
-    total_cxs = row.get("sku_total_cxs", 0)
-    if total_cxs and total_cxs > 0:
-        return [row[d] * row["Total CXs"] / total_cxs for d in day_cols]
-
-    n = row.get("qtd_clientes_sku", 0)
-    if n and n > 0:
-        return [row[d] / n for d in day_cols]
-
-    return [0.0] * len(day_cols)
-
-alloc_values = demanda.apply(lambda r: allocate_by_demand(r), axis=1)
-
 # aplicar valores alocados de volta às colunas de dias
+alloc_values = demanda.apply(lambda r: allocate_forecast_by_demand(client_total_cxs=r["Total CXs"], sku_total_cxs=r["sku_total_cxs"], qtd_clientes_sku=r["qtd_clientes_sku"], forecast_values=[r[d] for d in day_cols]), axis=1)
 alloc_df = pd.DataFrame(alloc_values.tolist(), columns=day_cols)
 demanda[day_cols] = alloc_df[day_cols]
 
